@@ -506,9 +506,9 @@ fn main() {
         }
     };
     let out_dir = env::var("OUT_DIR").unwrap();
-    // OUT_DIR is `<profile>/build/<package-hash>/out`; stage runtime files next to
-    // Cargo's executables in `<profile>`, including with a custom CARGO_TARGET_DIR.
-    let target_dir = Path::new(&out_dir).ancestors().nth(4).unwrap();
+    // OUT_DIR is `<target>/<profile>/build/<package-hash>/out`. ancestors: out, hash,
+    // build, profile, target. Stage next to binaries in `<profile>`.
+    let target_dir = Path::new(&out_dir).ancestors().nth(3).unwrap();
     let deps_dir = target_dir.join("deps");
     let examples_dir = target_dir.join("examples");
 
@@ -747,6 +747,10 @@ fn copy_matching_shared_libs_with_prefixes(
         }
 
         for dest_dir in [target_dir, deps_dir, examples_dir] {
+            if let Err(e) = fs::create_dir_all(dest_dir) {
+                println_build!("Warning: failed to create {}: {}", dest_dir.display(), e);
+                continue;
+            }
             let dest = dest_dir.join(file_name);
             if let Err(e) = fs::copy(&src, &dest) {
                 println_build!(
@@ -803,6 +807,10 @@ fn copy_so_to_run_dirs(src: &Path, target_dir: &Path, deps_dir: &Path, examples_
     };
 
     for dest_dir in [target_dir, deps_dir, examples_dir] {
+        if let Err(e) = fs::create_dir_all(dest_dir) {
+            println_build!("Warning: failed to create {}: {}", dest_dir.display(), e);
+            continue;
+        }
         let dest = dest_dir.join(so_name);
         if let Err(e) = fs::copy(src, &dest) {
             println_build!(
@@ -1259,7 +1267,12 @@ fn build_with_autocxx(no_native: bool) -> Vec<PathBuf> {
     // discovery. If the standard library headers (e.g. <cstddef>) are not found, we add
     // include paths from the environment (INCLUDE) or attempt to auto-detect a suitable
     // VS/Windows SDK installation.
-    let mut extra_clang_args: Vec<String> = vec!["-std=c++17".to_string()];
+    let mut extra_clang_args: Vec<String> = vec![
+        "-std=c++17".to_string(),
+        // Clang 22 rejects a `template` keyword in nop/types/variant.h. The header is
+        // only parsed here; the already-built DepthAI-Core library is unaffected.
+        "-Wno-missing-template-arg-list-after-template-kw".to_string(),
+    ];
 
     if target_os_is("windows") {
         extra_clang_args.push(format!("--target={}", windows_clang_target_triple()));
@@ -2771,18 +2784,8 @@ fn emit_link_directives(path: &Path) {
             if let Some(ref libdir) = vcpkg_lib {
                 println!("cargo:rustc-link-search=native={}", libdir.display());
 
-                // If we end up linking any shared libs from vcpkg (e.g. ffmpeg, libusb),
-                // set an rpath so binaries can run without manual LD_LIBRARY_PATH.
-                if target_os_is("linux") {
-                    // NOTE: On some toolchains, passing multiple `-Wl,-rpath,...` only keeps
-                    // the last value. Prefer a single RUNPATH containing both directories.
-                    let mut parts: Vec<String> = vec!["$ORIGIN".to_string()];
-                    if dcl_dir.join("libdynamic_calibration.so").exists() {
-                        parts.push(dcl_dir.display().to_string());
-                    }
-                    parts.push(libdir.display().to_string());
-                    println!("cargo:rustc-link-arg=-Wl,-rpath,{}", parts.join(":"));
-                }
+                // Link search uses the cache. Runtime lookup must not: a copied binary
+                // cannot see this machine's depthai-rs cache. $ORIGIN is set once above.
             }
 
             let protos_dir = BUILD_FOLDER_PATH.join("protos");
