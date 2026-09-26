@@ -2,7 +2,7 @@ use crate::common::ImageFrameType;
 use crate::error::{DepthaiError, Result};
 use crate::output::Input;
 use crate::threaded_host_node::{ThreadedHostNode, ThreadedHostNodeContext};
-use crate::{depthai_threaded_host_node, CreateInPipelineWith, Pipeline};
+use crate::{CreateInPipelineWith, Pipeline, depthai_threaded_host_node};
 
 use rerun as rr;
 
@@ -14,13 +14,9 @@ fn url_encode_component(input: &str) -> String {
     let mut out = String::with_capacity(input.len());
     for b in input.as_bytes() {
         match *b {
-            b'A'..=b'Z'
-            | b'a'..=b'z'
-            | b'0'..=b'9'
-            | b'-'
-            | b'.'
-            | b'_'
-            | b'~' => out.push(*b as char),
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~' => {
+                out.push(*b as char)
+            }
             _ => {
                 out.push('%');
                 out.push_str(&format!("{:02X}", b));
@@ -99,7 +95,9 @@ impl RerunHostNodeImpl {
                 let rt = tokio::runtime::Builder::new_multi_thread()
                     .enable_all()
                     .build()
-                    .map_err(|e| DepthaiError::new(format!("failed to create tokio runtime: {e}")))?;
+                    .map_err(|e| {
+                        DepthaiError::new(format!("failed to create tokio runtime: {e}"))
+                    })?;
 
                 // Temporarily enter the runtime so rerun can spawn background tasks.
                 let _guard = rt.enter();
@@ -259,9 +257,7 @@ impl RerunHostNodeImpl {
         }
 
         let image = match format {
-            Some(ImageFrameType::RGB888i) => {
-                rr::Image::from_rgb24(bytes, [w, h])
-            }
+            Some(ImageFrameType::RGB888i) => rr::Image::from_rgb24(bytes, [w, h]),
             Some(ImageFrameType::BGR888i) => {
                 let mut rgb = bytes;
                 for chunk in rgb.chunks_exact_mut(3) {
@@ -269,9 +265,7 @@ impl RerunHostNodeImpl {
                 }
                 rr::Image::from_rgb24(rgb, [w, h])
             }
-            Some(ImageFrameType::GRAY8) => {
-                rr::Image::from_l8(bytes, [w, h])
-            }
+            Some(ImageFrameType::GRAY8) => rr::Image::from_l8(bytes, [w, h]),
             _ => {
                 self.skipped_frames += 1;
                 if self.last_skip_note.elapsed() >= Duration::from_secs(2) {

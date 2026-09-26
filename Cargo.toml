@@ -134,11 +134,6 @@ path = "examples/video_encoder_rerun.rs"
 required-features = ["rerun"]
 
 [[example]]
-name = "video_encoder_rerun_h265"
-path = "examples/video_encoder_rerun_h265.rs"
-required-features = ["rerun"]
-
-[[example]]
 name = "detection_network_node"
 path = "examples/detection_network_node.rs"
 required-features = ["rerun"]

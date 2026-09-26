@@ -2,9 +2,9 @@ use std::ptr;
 use std::time::{Duration, SystemTime};
 
 use autocxx::c_int;
-use depthai_sys::{depthai, DaiDataQueue, DaiEncodedFrame};
+use depthai_sys::{DaiDataQueue, DaiEncodedFrame, depthai};
 
-use crate::error::{clear_error_flag, last_error, take_error_if_any, Result};
+use crate::error::{Result, clear_error_flag, last_error, take_error_if_any};
 use crate::timestamp::{
     DeviceTimestamp, HostTimestamp, read_monotonic_timestamp, read_system_timestamp,
     write_monotonic_timestamp, write_system_timestamp,
@@ -240,12 +240,20 @@ impl EncodedFrame {
     }
 
     pub fn describe(&self) -> String {
-        let prof = self.profile().map(|p| format!("{p:?}")).unwrap_or_else(|| "unknown".into());
+        let prof = self
+            .profile()
+            .map(|p| format!("{p:?}"))
+            .unwrap_or_else(|| "unknown".into());
         let ty = self
             .frame_type()
             .map(|t| format!("{t:?}"))
             .unwrap_or_else(|| "unknown".into());
-        format!("{}x{} {prof} {ty} ({} bytes)", self.width(), self.height(), self.data_len())
+        format!(
+            "{}x{} {prof} {ty} ({} bytes)",
+            self.width(),
+            self.height(),
+            self.data_len()
+        )
     }
 }
 
@@ -294,15 +302,6 @@ impl EncodedFrameQueue {
         } else {
             Ok(Some(EncodedFrame::from_handle(frame)))
         }
-    }
-
-    pub(crate) fn handle(&self) -> DaiDataQueue {
-        self.handle
-    }
-
-    pub(crate) fn into_raw(self) -> DaiDataQueue {
-        let me = std::mem::ManuallyDrop::new(self);
-        me.handle
     }
 }
 

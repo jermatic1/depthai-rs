@@ -1,12 +1,12 @@
-use std::ffi::{c_void, CString};
-use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::ffi::{CString, c_void};
+use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::ptr;
 use std::sync::{Arc, Mutex};
 
 use autocxx::c_int;
-use depthai_sys::{depthai, DaiNode};
+use depthai_sys::{DaiNode, depthai};
 
-use crate::error::{clear_error_flag, last_error, Result};
+use crate::error::{Result, clear_error_flag, last_error};
 use crate::output::{Input, Output};
 use crate::pipeline::{Node, Pipeline, PipelineInner};
 
@@ -108,7 +108,10 @@ impl ThreadedHostNodeContext {
     }
 }
 
-pub(crate) fn create_threaded_host_node<T, F>(pipeline: &Pipeline, init: F) -> Result<ThreadedHostNode>
+pub(crate) fn create_threaded_host_node<T, F>(
+    pipeline: &Pipeline,
+    init: F,
+) -> Result<ThreadedHostNode>
 where
     T: ThreadedHostNodeImpl,
     F: FnOnce(&ThreadedHostNode) -> Result<T>,

@@ -18,7 +18,10 @@ fn pipeline_schema_and_json_serialize_without_hardware() -> depthai::Result<()> 
 
     // Global properties should be JSON and round-trippable.
     let props = pipeline.global_properties_json()?;
-    assert!(props.is_object(), "global properties should be a JSON object");
+    assert!(
+        props.is_object(),
+        "global properties should be a JSON object"
+    );
     pipeline.set_global_properties_json(&props)?;
 
     // Create two host-side nodes and link them to exercise graph introspection.
@@ -36,7 +39,10 @@ fn pipeline_schema_and_json_serialize_without_hardware() -> depthai::Result<()> 
 
     // Nodes listing should contain our nodes.
     let nodes = pipeline.all_nodes()?;
-    assert!(nodes.len() >= 2, "expected at least two nodes after creation");
+    assert!(
+        nodes.len() >= 2,
+        "expected at least two nodes after creation"
+    );
     let first_id = nodes[0].id;
 
     // Node lookup should return a handle.
@@ -48,14 +54,18 @@ fn pipeline_schema_and_json_serialize_without_hardware() -> depthai::Result<()> 
     // Connections should include our link.
     let conns = pipeline.connections()?;
     assert!(
-        conns.iter().any(|c: &PipelineConnectionInfo| c.output_name == "out" && c.input_name == "in"),
+        conns
+            .iter()
+            .any(|c: &PipelineConnectionInfo| c.output_name == "out" && c.input_name == "in"),
         "expected to find our connection in pipeline.connections()"
     );
 
     // Connection map should be a superset view.
     let cmap = pipeline.connection_map()?;
     assert!(
-        cmap.values().flatten().any(|c| c.output_name == "out" && c.input_name == "in"),
+        cmap.values()
+            .flatten()
+            .any(|c| c.output_name == "out" && c.input_name == "in"),
         "expected to find our connection in pipeline.connection_map()"
     );
 

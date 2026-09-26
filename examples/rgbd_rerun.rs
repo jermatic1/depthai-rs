@@ -4,8 +4,10 @@ use std::time::Duration;
 use depthai::camera::{CameraNode, CameraOutputConfig};
 use depthai::common::{CameraBoardSocket, ImageFrameType, ResizeMode};
 use depthai::pipeline::Pipeline;
-use depthai::{DepthUnit, Device, DevicePlatform, ImageAlignNode, RgbdNode, StereoDepthNode, StereoPresetMode};
 use depthai::pointcloud::rgba32_from_rgba;
+use depthai::{
+    DepthUnit, Device, DevicePlatform, ImageAlignNode, RgbdNode, StereoDepthNode, StereoPresetMode,
+};
 use depthai::{RerunHostNode, RerunHostNodeConfig, RerunViewer, RerunWebConfig};
 
 use rerun as rr;
@@ -132,7 +134,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     rgbd.set_depth_unit(DepthUnit::Meter);
     rgbd.build_ex(
         false,
-        if is_rvc4 { StereoPresetMode::Default } else { StereoPresetMode::Robotics },
+        if is_rvc4 {
+            StereoPresetMode::Default
+        } else {
+            StereoPresetMode::Robotics
+        },
         (frame_w as i32, frame_h as i32),
         Some(fps),
     )?;
@@ -173,7 +179,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         for i in 0..2 {
             let c = qc.blocking_next(Some(Duration::from_millis(500)))?;
             let d = qd.blocking_next(Some(Duration::from_millis(500)))?;
-            eprintln!("debug_sizes[{i}]: color={:?} depth={:?}", c.as_ref().map(|f| f.describe()), d.as_ref().map(|f| f.describe()));
+            eprintln!(
+                "debug_sizes[{i}]: color={:?} depth={:?}",
+                c.as_ref().map(|f| f.describe()),
+                d.as_ref().map(|f| f.describe())
+            );
         }
     }
 
@@ -214,7 +224,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
 
                     positions.push(rr::Position3D::from([p.x, p.y, p.z]));
-                    colors.push(rr::Color::from(rr::Rgba32(rgba32_from_rgba(p.r, p.g, p.b, p.a))));
+                    colors.push(rr::Color::from(rr::Rgba32(rgba32_from_rgba(
+                        p.r, p.g, p.b, p.a,
+                    ))));
                 }
 
                 rec.log("pcl", &rr::Points3D::new(positions).with_colors(colors))?;

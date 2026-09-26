@@ -8,7 +8,9 @@ use depthai_sys::depthai;
 fn copy_last_error() -> String {
     let ptr = depthai::dai_get_last_error();
     assert!(!ptr.is_null(), "expected a wrapper error");
-    unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned()
+    unsafe { CStr::from_ptr(ptr) }
+        .to_string_lossy()
+        .into_owned()
 }
 
 #[test]

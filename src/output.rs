@@ -147,6 +147,12 @@ impl Output {
     }
 }
 
+impl Drop for Output {
+    fn drop(&mut self) {
+        let _ = self.pipeline.is_live();
+    }
+}
+
 impl Input {
     pub(crate) fn from_handle(pipeline: Arc<PipelineInner>, handle: DaiInput) -> Self {
         Self { pipeline, handle }
@@ -387,5 +393,11 @@ impl Node {
             return Err(last_error("failed to get or create node output"));
         }
         Ok(Output::from_handle(Arc::clone(&self.pipeline), handle))
+    }
+}
+
+impl Drop for Input {
+    fn drop(&mut self) {
+        let _ = self.pipeline.is_live();
     }
 }

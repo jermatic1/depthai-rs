@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use depthai::camera::{CameraBoardSocket, CameraNode, CameraOutputConfig};
-use depthai::{depthai_host_node, Buffer, MessageGroup, Pipeline, Result};
+use depthai::{Buffer, MessageGroup, Pipeline, Result, depthai_host_node};
 
 #[depthai_host_node]
 struct FrameLogger;

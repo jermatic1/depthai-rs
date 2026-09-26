@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use depthai::camera::{CameraBoardSocket, CameraNode, CameraOutputConfig};
-use depthai::{depthai_threaded_host_node, Pipeline, Result, ThreadedHostNodeContext};
+use depthai::{Pipeline, Result, ThreadedHostNodeContext, depthai_threaded_host_node};
 
 #[depthai_threaded_host_node]
 struct FrameTap {
@@ -13,7 +13,11 @@ impl FrameTap {
         while ctx.is_running() {
             match self.input.get_frame() {
                 Ok(frame) => {
-                    println!("threaded host node frame: {}x{}", frame.width(), frame.height());
+                    println!(
+                        "threaded host node frame: {}x{}",
+                        frame.width(),
+                        frame.height()
+                    );
                 }
                 Err(_) => break,
             }

@@ -88,7 +88,9 @@ fn main() -> Result<()> {
     pipeline.start()?;
 
     eprintln!("image_manip running (press Ctrl-C to stop)...");
-    eprintln!("If the web viewer can't fetch data, make sure the gRPC /proxy port (default 9876) is reachable from your browser (e.g. port-forward it if you're remote).");
+    eprintln!(
+        "If the web viewer can't fetch data, make sure the gRPC /proxy port (default 9876) is reachable from your browser (e.g. port-forward it if you're remote)."
+    );
     loop {
         std::thread::sleep(Duration::from_secs(1));
     }

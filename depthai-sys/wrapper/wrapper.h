@@ -86,17 +86,6 @@ typedef void (*DaiThreadedHostNodeRun)(void *ctx);
 typedef void (*DaiQueueCallback)(void *ctx, const char *queue_name,
                                  DaiDatatype msg);
 
-// POD view of `dai::Point3fRGBA`
-typedef struct DaiPoint3fRGBA {
-  float x;
-  float y;
-  float z;
-  unsigned char r;
-  unsigned char g;
-  unsigned char b;
-  unsigned char a;
-} DaiPoint3fRGBA;
-
 // Low-level device operations
 API DaiDevice dai_device_new();
 API DaiDevice dai_device_new_with_device_id(const char *device_id);
@@ -429,6 +418,15 @@ API void dai_stereo_set_rectify_edge_fill_color(DaiNode stereo, int color);
 API void dai_stereo_enable_distortion_correction(DaiNode stereo, bool enable);
 API void dai_stereo_set_output_size(DaiNode stereo, int width, int height);
 API void dai_stereo_set_output_keep_aspect_ratio(DaiNode stereo, bool keep);
+API void dai_stereo_set_input_resolution(DaiNode stereo, int width, int height);
+API void dai_stereo_initial_set_temporal_filter(DaiNode stereo, bool enable);
+API void dai_stereo_initial_set_spatial_filter(DaiNode stereo, bool enable);
+API void dai_stereo_initial_set_decimation(DaiNode stereo, int factor);
+API bool dai_camera_set_initial_manual_exposure(DaiCameraNode camera,
+                                                uint32_t exposure_us,
+                                                uint32_t iso);
+API DaiBuffer dai_camera_control_manual_exposure(uint32_t exposure_us,
+                                                 uint32_t iso);
 API void dai_stereo_initial_set_left_right_check_threshold(DaiNode stereo,
                                                            int threshold);
 API void dai_stereo_initial_set_threshold_filter_max_range(DaiNode stereo,
@@ -690,7 +688,7 @@ API bool dai_img_detections_copy_mask(DaiImgDetections detections,
 // PointCloud view accessors
 API int dai_pointcloud_get_width(DaiPointCloud pcl);
 API int dai_pointcloud_get_height(DaiPointCloud pcl);
-API const DaiPoint3fRGBA *dai_pointcloud_get_points_rgba(DaiPointCloud pcl);
+API const void *dai_pointcloud_get_points_rgba(DaiPointCloud pcl);
 API size_t dai_pointcloud_get_points_rgba_len(DaiPointCloud pcl);
 API void dai_pointcloud_release(DaiPointCloud pcl);
 

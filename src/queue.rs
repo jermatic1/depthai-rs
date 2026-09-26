@@ -602,8 +602,8 @@ impl MessageQueue {
         let ctx_state = Box::into_raw(state);
         let ctx = ctx_state as *mut std_c_void;
 
-        let cb_fn = queue_callback_trampoline as usize;
-        let drop_fn = queue_callback_drop as usize;
+        let cb_fn = queue_callback_trampoline as *const () as usize;
+        let drop_fn = queue_callback_drop as *const () as usize;
 
         let id = unsafe {
             depthai::dai_queue_add_callback(

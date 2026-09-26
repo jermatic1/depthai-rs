@@ -216,6 +216,12 @@ include_cpp! {
     generate!("dai::dai_stereo_enable_distortion_correction")
     generate!("dai::dai_stereo_set_output_size")
     generate!("dai::dai_stereo_set_output_keep_aspect_ratio")
+    generate!("dai::dai_stereo_set_input_resolution")
+    generate!("dai::dai_stereo_initial_set_temporal_filter")
+    generate!("dai::dai_stereo_initial_set_spatial_filter")
+    generate!("dai::dai_stereo_initial_set_decimation")
+    generate!("dai::dai_camera_set_initial_manual_exposure")
+    generate!("dai::dai_camera_control_manual_exposure")
     generate!("dai::dai_stereo_initial_set_left_right_check_threshold")
     generate!("dai::dai_stereo_initial_set_threshold_filter_max_range")
 

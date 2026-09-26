@@ -66,13 +66,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Log the codec once per entity.
     // Samples are then appended over time on the "frame" timeline.
-    rec.log_static("video", &rr::VideoStream::new(rr::components::VideoCodec::H265))?;
+    rec.log_static(
+        "video",
+        &rr::VideoStream::new(rr::components::VideoCodec::H265),
+    )?;
 
     // Start the pipeline
     pipeline.start()?;
 
     eprintln!("Streaming H.265 to Rerun (press Ctrl-C to stop)...");
-    eprintln!("If the web viewer can't fetch data, make sure the gRPC /proxy port (default 9876) is reachable from your browser (e.g. port-forward it if you're remote).");
+    eprintln!(
+        "If the web viewer can't fetch data, make sure the gRPC /proxy port (default 9876) is reachable from your browser (e.g. port-forward it if you're remote)."
+    );
 
     let mut frame_nr: i64 = 0;
 

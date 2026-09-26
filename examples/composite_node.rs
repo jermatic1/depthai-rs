@@ -1,7 +1,7 @@
-use depthai::camera::{CameraNode, CameraBoardSocket};
-use depthai::stereo_depth::StereoDepthNode;
-use depthai::pipeline::Pipeline;
+use depthai::camera::{CameraBoardSocket, CameraNode};
 use depthai::device::Device;
+use depthai::pipeline::Pipeline;
+use depthai::stereo_depth::StereoDepthNode;
 use depthai::{Result, depthai_composite};
 
 /// A composite node that bundles a camera and stereo depth.
@@ -25,7 +25,11 @@ impl CameraStereoBundle {
         left.raw()?.link(&stereo.left()?)?;
         right.raw()?.link(&stereo.right()?)?;
 
-        Ok(Self { left, right, stereo })
+        Ok(Self {
+            left,
+            right,
+            stereo,
+        })
     }
 }
 
@@ -35,9 +39,9 @@ fn main() -> Result<()> {
 
     // Create the composite node using the generic API
     let bundle = pipeline.create::<CameraStereoBundle>()?;
-    
+
     println!("Created composite bundle with 2 cameras and 1 stereo node");
-    
+
     pipeline.start()?;
     println!("Pipeline started!");
 

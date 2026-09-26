@@ -1732,8 +1732,6 @@ static std::unordered_map<std::string, NodeCreator>& get_node_registry() {
     static std::unordered_map<std::string, NodeCreator> registry;
     if (registry.empty()) {
         REGISTER_NODE(dai::node::Camera);
-        REGISTER_NODE(dai::node::ColorCamera);
-        REGISTER_NODE(dai::node::MonoCamera);
         REGISTER_NODE(dai::node::StereoDepth);
         REGISTER_NODE(dai::node::ImageAlign);
         REGISTER_NODE(dai::node::RGBD);
@@ -1792,7 +1790,10 @@ DaiNode dai_pipeline_create_node_by_name(DaiPipeline pipeline, const char* name)
         if (it != registry.end()) {
             return static_cast<DaiNode>(it->second(pipe));
         }
-        
+        if (std::string(name) == "dai::node::ColorCamera" || std::string(name) == "dai::node::MonoCamera") {
+            last_error = std::string(name) + " was removed; use dai::node::Camera";
+            return nullptr;
+        }
         last_error = std::string("dai_pipeline_create_node_by_name: unknown node name: ") + name;
         return nullptr;
     } catch (const std::exception& e) {
@@ -2321,6 +2322,95 @@ void dai_stereo_set_output_keep_aspect_ratio(DaiNode stereo, bool keep) {
     }
 }
 
+void dai_stereo_set_input_resolution(DaiNode stereo, int width, int height) {
+    if(!stereo) {
+        last_error = "dai_stereo_set_input_resolution: null stereo";
+        return;
+    }
+    try {
+        _dai_as_stereo(stereo)->setInputResolution(width, height);
+    } catch(const std::exception& e) {
+        last_error = std::string("dai_stereo_set_input_resolution failed: ") + e.what();
+    }
+}
+
+void dai_stereo_initial_set_temporal_filter(DaiNode stereo, bool enable) {
+    if(!stereo) {
+        last_error = "dai_stereo_initial_set_temporal_filter: null stereo";
+        return;
+    }
+    try {
+        auto s = _dai_as_stereo(stereo);
+        if(!s->initialConfig) {
+            last_error = "dai_stereo_initial_set_temporal_filter: initialConfig is null";
+            return;
+        }
+        s->initialConfig->postProcessing.temporalFilter.enable = enable;
+    } catch(const std::exception& e) {
+        last_error = std::string("dai_stereo_initial_set_temporal_filter failed: ") + e.what();
+    }
+}
+
+void dai_stereo_initial_set_spatial_filter(DaiNode stereo, bool enable) {
+    if(!stereo) {
+        last_error = "dai_stereo_initial_set_spatial_filter: null stereo";
+        return;
+    }
+    try {
+        auto s = _dai_as_stereo(stereo);
+        if(!s->initialConfig) {
+            last_error = "dai_stereo_initial_set_spatial_filter: initialConfig is null";
+            return;
+        }
+        s->initialConfig->postProcessing.spatialFilter.enable = enable;
+    } catch(const std::exception& e) {
+        last_error = std::string("dai_stereo_initial_set_spatial_filter failed: ") + e.what();
+    }
+}
+
+void dai_stereo_initial_set_decimation(DaiNode stereo, int factor) {
+    if(!stereo) {
+        last_error = "dai_stereo_initial_set_decimation: null stereo";
+        return;
+    }
+    try {
+        auto s = _dai_as_stereo(stereo);
+        if(!s->initialConfig) {
+            last_error = "dai_stereo_initial_set_decimation: initialConfig is null";
+            return;
+        }
+        s->initialConfig->postProcessing.decimationFilter.decimationFactor = static_cast<std::uint32_t>(factor);
+    } catch(const std::exception& e) {
+        last_error = std::string("dai_stereo_initial_set_decimation failed: ") + e.what();
+    }
+}
+
+bool dai_camera_set_initial_manual_exposure(DaiCameraNode camera, uint32_t exposure_us, uint32_t iso) {
+    if(!camera) {
+        last_error = "dai_camera_set_initial_manual_exposure: null camera";
+        return false;
+    }
+    try {
+        auto cam = static_cast<dai::node::Camera*>(camera);
+        cam->initialControl.setManualExposure(exposure_us, iso);
+        return true;
+    } catch(const std::exception& e) {
+        last_error = std::string("dai_camera_set_initial_manual_exposure failed: ") + e.what();
+        return false;
+    }
+}
+
+DaiBuffer dai_camera_control_manual_exposure(uint32_t exposure_us, uint32_t iso) {
+    try {
+        auto ctrl = std::make_shared<dai::CameraControl>();
+        ctrl->setManualExposure(exposure_us, iso);
+        return new std::shared_ptr<dai::Buffer>(std::static_pointer_cast<dai::Buffer>(ctrl));
+    } catch(const std::exception& e) {
+        last_error = std::string("dai_camera_control_manual_exposure failed: ") + e.what();
+        return nullptr;
+    }
+}
+
 void dai_stereo_initial_set_left_right_check_threshold(DaiNode stereo, int threshold) {
     if(!stereo) {
         last_error = "dai_stereo_initial_set_left_right_check_threshold: null stereo";
@@ -2839,6 +2929,9 @@ static bool _dai_nn_data_valid_tensor_data_type(int data_type) {
         case dai::TensorInfo::DataType::FP32:
         case dai::TensorInfo::DataType::I8:
         case dai::TensorInfo::DataType::FP64:
+#ifdef DEPTHAI_SYS_HAS_TENSOR_U16F
+        case dai::TensorInfo::DataType::U16F:
+#endif
             return true;
     }
     return false;
@@ -2884,6 +2977,10 @@ static size_t _dai_tensor_element_size(dai::TensorInfo::DataType data_type) {
         case dai::TensorInfo::DataType::U8F:
         case dai::TensorInfo::DataType::I8:
             return 1;
+#ifdef DEPTHAI_SYS_HAS_TENSOR_U16F
+        case dai::TensorInfo::DataType::U16F:
+            return 2;
+#endif
     }
     return 0;
 }
@@ -3687,14 +3784,14 @@ int dai_pointcloud_get_height(DaiPointCloud pcl) {
     return static_cast<int>(view->msg ? view->msg->getHeight() : 0);
 }
 
-const DaiPoint3fRGBA* dai_pointcloud_get_points_rgba(DaiPointCloud pcl) {
+const void* dai_pointcloud_get_points_rgba(DaiPointCloud pcl) {
     if(!pcl) {
         last_error = "dai_pointcloud_get_points_rgba: null pointcloud";
         return nullptr;
     }
     auto view = static_cast<DaiPointCloudView*>(pcl);
     if(view->points.empty()) return nullptr;
-    return reinterpret_cast<const DaiPoint3fRGBA*>(view->points.data());
+    return view->points.data();
 }
 
 size_t dai_pointcloud_get_points_rgba_len(DaiPointCloud pcl) {

@@ -26,7 +26,9 @@ pub struct StereoDepthNode {
 impl StereoDepthNode {
     pub fn set_default_profile_preset(&self, mode: PresetMode) {
         clear_error_flag();
-        unsafe { depthai::dai_stereo_set_default_profile_preset(self.node.handle(), c_int(mode as i32)) };
+        unsafe {
+            depthai::dai_stereo_set_default_profile_preset(self.node.handle(), c_int(mode as i32))
+        };
     }
 
     pub fn set_left_right_check(&self, enable: bool) {
@@ -54,7 +56,9 @@ impl StereoDepthNode {
     /// Mirrors C++: `StereoDepth::setOutputSize(width, height)`.
     pub fn set_output_size(&self, width: i32, height: i32) {
         clear_error_flag();
-        unsafe { depthai::dai_stereo_set_output_size(self.node.handle(), c_int(width), c_int(height)) };
+        unsafe {
+            depthai::dai_stereo_set_output_size(self.node.handle(), c_int(width), c_int(height))
+        };
     }
 
     /// Whether resizing done by `set_output_size` should keep aspect ratio (with potential cropping).
@@ -63,5 +67,52 @@ impl StereoDepthNode {
     pub fn set_output_keep_aspect_ratio(&self, keep: bool) {
         clear_error_flag();
         unsafe { depthai::dai_stereo_set_output_keep_aspect_ratio(self.node.handle(), keep) };
+    }
+
+    pub fn set_input_resolution(&self, width: i32, height: i32) -> crate::error::Result<()> {
+        clear_error_flag();
+        unsafe {
+            depthai::dai_stereo_set_input_resolution(
+                self.node.handle(),
+                c_int(width),
+                c_int(height),
+            )
+        };
+        if let Some(err) = crate::error::take_error_if_any("failed to set stereo input resolution")
+        {
+            Err(err)
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn set_temporal_filter(&self, enable: bool) -> crate::error::Result<()> {
+        clear_error_flag();
+        unsafe { depthai::dai_stereo_initial_set_temporal_filter(self.node.handle(), enable) };
+        if let Some(err) = crate::error::take_error_if_any("failed to set temporal filter") {
+            Err(err)
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn set_spatial_filter(&self, enable: bool) -> crate::error::Result<()> {
+        clear_error_flag();
+        unsafe { depthai::dai_stereo_initial_set_spatial_filter(self.node.handle(), enable) };
+        if let Some(err) = crate::error::take_error_if_any("failed to set spatial filter") {
+            Err(err)
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn set_decimation(&self, factor: i32) -> crate::error::Result<()> {
+        clear_error_flag();
+        unsafe { depthai::dai_stereo_initial_set_decimation(self.node.handle(), c_int(factor)) };
+        if let Some(err) = crate::error::take_error_if_any("failed to set decimation") {
+            Err(err)
+        } else {
+            Ok(())
+        }
     }
 }

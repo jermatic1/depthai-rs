@@ -1,9 +1,9 @@
 use std::ffi::CString;
 use std::sync::Arc;
 
-use depthai_sys::{depthai, DaiNode};
+use depthai_sys::{DaiNode, depthai};
 
-use crate::error::{clear_error_flag, last_error, take_error_if_any, Result};
+use crate::error::{Result, clear_error_flag, last_error, take_error_if_any};
 
 use super::PipelineInner;
 
@@ -129,9 +129,8 @@ impl Node {
 pub(crate) fn create_node_by_name(pipeline: Arc<PipelineInner>, name: &str) -> Result<Node> {
     clear_error_flag();
     let name_c = CString::new(name).map_err(|_| last_error("invalid node name"))?;
-    let handle = unsafe {
-        depthai::dai_pipeline_create_node_by_name(pipeline.handle, name_c.as_ptr())
-    };
+    let handle =
+        unsafe { depthai::dai_pipeline_create_node_by_name(pipeline.handle, name_c.as_ptr()) };
     if handle.is_null() {
         Err(last_error("failed to create node by name"))
     } else {

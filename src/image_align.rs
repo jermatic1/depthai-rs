@@ -26,7 +26,13 @@ impl ImageAlignNode {
     /// Mirrors C++: `ImageAlign::setOutputSize(width, height)`.
     pub fn set_output_size(&self, width: i32, height: i32) {
         clear_error_flag();
-        unsafe { depthai::dai_image_align_set_output_size(self.node.handle(), c_int(width), c_int(height)) };
+        unsafe {
+            depthai::dai_image_align_set_output_size(
+                self.node.handle(),
+                c_int(width),
+                c_int(height),
+            )
+        };
     }
 
     /// Specify whether to keep aspect ratio when resizing.

@@ -14,7 +14,8 @@ mod hardware_integration_tests {
         if let Ok(id) = std::env::var("DAI_TEST_DEVICE_ID") {
             return id;
         }
-        let ids = depthai::connected_device_ids().expect("failed to enumerate connected OAK boards");
+        let ids =
+            depthai::connected_device_ids().expect("failed to enumerate connected OAK boards");
         ids.into_iter()
             .next()
             .expect("no OAK board connected; plug one in or set DAI_TEST_DEVICE_ID")
@@ -64,7 +65,8 @@ mod hardware_integration_tests {
 
     #[test]
     fn test_device_new_with_device_id() {
-        let device = Device::new_with_device_id(&device_id()).expect("failed to open device by device ID");
+        let device =
+            Device::new_with_device_id(&device_id()).expect("failed to open device by device ID");
         assert!(device.is_connected());
         assert!(device.platform().is_ok());
     }
@@ -83,7 +85,10 @@ mod hardware_integration_tests {
     #[test]
     fn test_device_new_with_invalid_device_id_fails() {
         let result = Device::new_with_device_id("00000000000000");
-        assert!(result.is_err(), "nonexistent device ID must return an error");
+        assert!(
+            result.is_err(),
+            "nonexistent device ID must return an error"
+        );
     }
 
     /// Opening via the default constructor then by device ID must reuse the same connection,

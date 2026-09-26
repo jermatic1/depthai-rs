@@ -4,7 +4,7 @@ use depthai_sys::depthai;
 
 use crate::common::ImageFrameType;
 use crate::encoded_frame::validate_nv12_dimensions;
-use crate::error::{clear_error_flag, take_error_if_any, Result};
+use crate::error::{Result, clear_error_flag, take_error_if_any};
 use crate::output::Input;
 
 #[repr(i32)]
@@ -47,10 +47,7 @@ impl VideoEncoderProfile {
     }
 }
 
-#[crate::native_node_wrapper(
-    native = "dai::node::VideoEncoder",
-    outputs(bitstream, out)
-)]
+#[crate::native_node_wrapper(native = "dai::node::VideoEncoder", outputs(bitstream, out))]
 pub struct VideoEncoderNode {
     node: crate::pipeline::Node,
 }
@@ -79,13 +76,19 @@ impl VideoEncoderNode {
     pub fn set_default_profile_preset(&self, fps: f32, profile: VideoEncoderProfile) {
         clear_error_flag();
         unsafe {
-            depthai::dai_video_encoder_set_default_profile_preset(self.node.handle(), fps, c_int(profile as i32))
+            depthai::dai_video_encoder_set_default_profile_preset(
+                self.node.handle(),
+                fps,
+                c_int(profile as i32),
+            )
         };
     }
 
     pub fn set_num_frames_pool(&self, frames: i32) {
         clear_error_flag();
-        unsafe { depthai::dai_video_encoder_set_num_frames_pool(self.node.handle(), c_int(frames)) };
+        unsafe {
+            depthai::dai_video_encoder_set_num_frames_pool(self.node.handle(), c_int(frames))
+        };
     }
 
     pub fn num_frames_pool(&self) -> Result<i32> {
@@ -100,7 +103,9 @@ impl VideoEncoderNode {
 
     pub fn set_rate_control_mode(&self, mode: VideoEncoderRateControlMode) {
         clear_error_flag();
-        unsafe { depthai::dai_video_encoder_set_rate_control_mode(self.node.handle(), c_int(mode as i32)) };
+        unsafe {
+            depthai::dai_video_encoder_set_rate_control_mode(self.node.handle(), c_int(mode as i32))
+        };
     }
 
     pub fn rate_control_mode(&self) -> Result<VideoEncoderRateControlMode> {
@@ -109,12 +114,15 @@ impl VideoEncoderNode {
         if let Some(err) = take_error_if_any("failed to get rate control mode") {
             return Err(err);
         }
-        Ok(VideoEncoderRateControlMode::from_raw(raw.into()).unwrap_or(VideoEncoderRateControlMode::Cbr))
+        Ok(VideoEncoderRateControlMode::from_raw(raw.into())
+            .unwrap_or(VideoEncoderRateControlMode::Cbr))
     }
 
     pub fn set_profile(&self, profile: VideoEncoderProfile) {
         clear_error_flag();
-        unsafe { depthai::dai_video_encoder_set_profile(self.node.handle(), c_int(profile as i32)) };
+        unsafe {
+            depthai::dai_video_encoder_set_profile(self.node.handle(), c_int(profile as i32))
+        };
     }
 
     pub fn profile(&self) -> Result<VideoEncoderProfile> {
@@ -143,7 +151,9 @@ impl VideoEncoderNode {
 
     pub fn set_bitrate_kbps(&self, bitrate_kbps: i32) {
         clear_error_flag();
-        unsafe { depthai::dai_video_encoder_set_bitrate_kbps(self.node.handle(), c_int(bitrate_kbps)) };
+        unsafe {
+            depthai::dai_video_encoder_set_bitrate_kbps(self.node.handle(), c_int(bitrate_kbps))
+        };
     }
 
     pub fn bitrate_kbps(&self) -> Result<i32> {
@@ -158,7 +168,9 @@ impl VideoEncoderNode {
 
     pub fn set_keyframe_frequency(&self, freq: i32) {
         clear_error_flag();
-        unsafe { depthai::dai_video_encoder_set_keyframe_frequency(self.node.handle(), c_int(freq)) };
+        unsafe {
+            depthai::dai_video_encoder_set_keyframe_frequency(self.node.handle(), c_int(freq))
+        };
     }
 
     pub fn keyframe_frequency(&self) -> Result<i32> {
@@ -173,7 +185,9 @@ impl VideoEncoderNode {
 
     pub fn set_num_bframes(&self, num_bframes: i32) {
         clear_error_flag();
-        unsafe { depthai::dai_video_encoder_set_num_bframes(self.node.handle(), c_int(num_bframes)) };
+        unsafe {
+            depthai::dai_video_encoder_set_num_bframes(self.node.handle(), c_int(num_bframes))
+        };
     }
 
     pub fn num_bframes(&self) -> Result<i32> {
@@ -233,7 +247,12 @@ impl VideoEncoderNode {
 
     pub fn set_max_output_frame_size(&self, max_frame_size: i32) {
         clear_error_flag();
-        unsafe { depthai::dai_video_encoder_set_max_output_frame_size(self.node.handle(), c_int(max_frame_size)) };
+        unsafe {
+            depthai::dai_video_encoder_set_max_output_frame_size(
+                self.node.handle(),
+                c_int(max_frame_size),
+            )
+        };
     }
 
     pub fn max_output_frame_size(&self) -> Result<i32> {

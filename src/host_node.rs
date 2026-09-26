@@ -1,13 +1,13 @@
-use std::ffi::{c_void, CString};
-use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::ffi::{CString, c_void};
+use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::ptr;
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 
-use depthai_sys::{depthai, DaiBuffer, DaiMessageGroup, DaiNode};
+use depthai_sys::{DaiBuffer, DaiMessageGroup, DaiNode, depthai};
 
 use crate::camera::ImageFrame;
-use crate::error::{clear_error_flag, last_error, take_error_if_any, Result};
+use crate::error::{Result, clear_error_flag, last_error, take_error_if_any};
 use crate::output::{Input, Output};
 use crate::pipeline::{Node, Pipeline, PipelineInner};
 use crate::timestamp::{
@@ -40,7 +40,8 @@ impl HostNode {
     pub fn input(&self, name: &str) -> Result<Input> {
         clear_error_flag();
         let name_c = CString::new(name).map_err(|_| last_error("invalid host input name"))?;
-        let handle = unsafe { depthai::dai_hostnode_get_input(self.node.handle(), name_c.as_ptr()) };
+        let handle =
+            unsafe { depthai::dai_hostnode_get_input(self.node.handle(), name_c.as_ptr()) };
         if handle.is_null() {
             Err(last_error("failed to get host node input"))
         } else {
@@ -119,7 +120,8 @@ impl MessageGroup {
     pub fn get_frame(&self, name: &str) -> Result<Option<ImageFrame>> {
         clear_error_flag();
         let name_c = CString::new(name).map_err(|_| last_error("invalid message name"))?;
-        let handle = unsafe { depthai::dai_message_group_get_img_frame(self.handle, name_c.as_ptr()) };
+        let handle =
+            unsafe { depthai::dai_message_group_get_img_frame(self.handle, name_c.as_ptr()) };
         if handle.is_null() {
             if let Some(err) = take_error_if_any("failed to get frame from group") {
                 Err(err)
@@ -311,7 +313,10 @@ struct HostNodeState<T: HostNodeImpl> {
     inner: Mutex<T>,
 }
 
-unsafe extern "C" fn hostnode_process<T: HostNodeImpl>(ctx: *mut c_void, group: DaiMessageGroup) -> DaiBuffer {
+unsafe extern "C" fn hostnode_process<T: HostNodeImpl>(
+    ctx: *mut c_void,
+    group: DaiMessageGroup,
+) -> DaiBuffer {
     if ctx.is_null() || group.is_null() {
         return ptr::null_mut();
     }

@@ -1,10 +1,10 @@
 use std::time::Duration;
 
 use autocxx::c_int;
-use depthai_sys::{depthai, DaiPointCloud};
+use depthai_sys::{DaiPointCloud, depthai};
 
 use crate::camera::OutputQueue;
-use crate::error::{clear_error_flag, take_error_if_any, Result};
+use crate::error::{Result, clear_error_flag, take_error_if_any};
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
@@ -37,12 +37,14 @@ impl PointCloudData {
     }
 
     pub fn width(&self) -> u32 {
-        let raw: ::std::os::raw::c_int = unsafe { depthai::dai_pointcloud_get_width(self.handle) }.into();
+        let raw: ::std::os::raw::c_int =
+            unsafe { depthai::dai_pointcloud_get_width(self.handle) }.into();
         raw.max(0) as u32
     }
 
     pub fn height(&self) -> u32 {
-        let raw: ::std::os::raw::c_int = unsafe { depthai::dai_pointcloud_get_height(self.handle) }.into();
+        let raw: ::std::os::raw::c_int =
+            unsafe { depthai::dai_pointcloud_get_height(self.handle) }.into();
         raw.max(0) as u32
     }
 
@@ -60,7 +62,10 @@ impl PointCloudData {
 }
 
 impl OutputQueue {
-    pub fn blocking_next_pointcloud(&self, timeout: Option<Duration>) -> Result<Option<PointCloudData>> {
+    pub fn blocking_next_pointcloud(
+        &self,
+        timeout: Option<Duration>,
+    ) -> Result<Option<PointCloudData>> {
         clear_error_flag();
         let timeout_ms = timeout.map(|d| d.as_millis() as i32).unwrap_or(-1);
         let pcl = unsafe { depthai::dai_queue_get_pointcloud(self.handle(), c_int(timeout_ms)) };

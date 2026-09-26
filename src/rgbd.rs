@@ -1,10 +1,10 @@
 use std::time::Duration;
 
 use autocxx::c_int;
-use depthai_sys::{depthai, DaiRGBDData};
+use depthai_sys::{DaiRGBDData, depthai};
 
 use crate::camera::{ImageFrame, OutputQueue};
-use crate::error::{clear_error_flag, last_error, take_error_if_any, Result};
+use crate::error::{Result, clear_error_flag, last_error, take_error_if_any};
 
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

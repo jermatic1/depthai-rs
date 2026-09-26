@@ -1,7 +1,7 @@
 use autocxx::c_int;
 use depthai_sys::depthai;
 
-use crate::error::{clear_error_flag, last_error, take_error_if_any, Result};
+use crate::error::{Result, clear_error_flag, last_error, take_error_if_any};
 use crate::host_node::Buffer;
 
 /// Gate node wrapper.
@@ -96,11 +96,13 @@ impl GateControl {
     /// Requires depthai-core v3.4.0+.
     pub fn open_all() -> Result<Self> {
         clear_error_flag();
-        let handle = unsafe { depthai::dai_gate_control_open_all() };
+        let handle = depthai::dai_gate_control_open_all();
         if handle.is_null() {
             Err(last_error("failed to create GateControl::openGate()"))
         } else {
-            Ok(Self { buffer: Buffer::from_handle(handle) })
+            Ok(Self {
+                buffer: Buffer::from_handle(handle),
+            })
         }
     }
 
@@ -109,11 +111,13 @@ impl GateControl {
     /// Requires depthai-core v3.4.0+.
     pub fn close() -> Result<Self> {
         clear_error_flag();
-        let handle = unsafe { depthai::dai_gate_control_close() };
+        let handle = depthai::dai_gate_control_close();
         if handle.is_null() {
             Err(last_error("failed to create GateControl::closeGate()"))
         } else {
-            Ok(Self { buffer: Buffer::from_handle(handle) })
+            Ok(Self {
+                buffer: Buffer::from_handle(handle),
+            })
         }
     }
 
@@ -124,11 +128,13 @@ impl GateControl {
     /// Requires depthai-core v3.4.0+.
     pub fn open_n(num_messages: i32, fps: i32) -> Result<Self> {
         clear_error_flag();
-        let handle = unsafe { depthai::dai_gate_control_open_n(c_int(num_messages), c_int(fps)) };
+        let handle = depthai::dai_gate_control_open_n(c_int(num_messages), c_int(fps));
         if handle.is_null() {
             Err(last_error("failed to create GateControl::openGate(n, fps)"))
         } else {
-            Ok(Self { buffer: Buffer::from_handle(handle) })
+            Ok(Self {
+                buffer: Buffer::from_handle(handle),
+            })
         }
     }
 

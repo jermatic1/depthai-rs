@@ -1,10 +1,10 @@
 use std::time::Duration;
 
+use depthai::Result;
 use depthai::camera::{CameraNode, CameraOutputConfig};
 use depthai::common::{CameraBoardSocket, ImageFrameType, ResizeMode};
 use depthai::device::Device;
 use depthai::pipeline::Pipeline;
-use depthai::Result;
 
 fn main() -> Result<()> {
     let device = Device::new()?;
@@ -25,7 +25,11 @@ fn main() -> Result<()> {
 
     for _ in 0..10 {
         if let Some(frame) = q.blocking_next(Some(Duration::from_millis(200)))? {
-            println!("Got frame: {} ({} bytes)", frame.describe(), frame.byte_len());
+            println!(
+                "Got frame: {} ({} bytes)",
+                frame.describe(),
+                frame.byte_len()
+            );
         } else {
             println!("No frame yet");
         }

@@ -367,7 +367,7 @@ pub fn set_health_endpoint(endpoint: &str) -> Result<()> {
 /// FFI: maps to depthai-core `modelzoo::getHealthEndpoint`.
 pub fn get_health_endpoint() -> Result<String> {
     clear_error_flag();
-    let ptr = unsafe { depthai::dai_modelzoo_get_health_endpoint() };
+    let ptr = depthai::dai_modelzoo_get_health_endpoint();
     take_owned_string(ptr, "failed to get health endpoint")
 }
 
@@ -396,7 +396,7 @@ pub fn set_download_endpoint(endpoint: &str) -> Result<()> {
 /// FFI: maps to depthai-core `modelzoo::getDownloadEndpoint`.
 pub fn get_download_endpoint() -> Result<String> {
     clear_error_flag();
-    let ptr = unsafe { depthai::dai_modelzoo_get_download_endpoint() };
+    let ptr = depthai::dai_modelzoo_get_download_endpoint();
     take_owned_string(ptr, "failed to get download endpoint")
 }
 
@@ -431,7 +431,7 @@ pub fn set_default_cache_path(path: impl AsRef<Path>) -> Result<()> {
 /// FFI: maps to depthai-core `modelzoo::getDefaultCachePath`.
 pub fn get_default_cache_path() -> Result<PathBuf> {
     clear_error_flag();
-    let ptr = unsafe { depthai::dai_modelzoo_get_default_cache_path() };
+    let ptr = depthai::dai_modelzoo_get_default_cache_path();
     let s = take_owned_string(ptr, "failed to get default cache path")?;
     Ok(PathBuf::from(s))
 }
@@ -467,7 +467,7 @@ pub fn set_default_models_path(path: impl AsRef<Path>) -> Result<()> {
 /// FFI: maps to depthai-core `modelzoo::getDefaultModelsPath`.
 pub fn get_default_models_path() -> Result<PathBuf> {
     clear_error_flag();
-    let ptr = unsafe { depthai::dai_modelzoo_get_default_models_path() };
+    let ptr = depthai::dai_modelzoo_get_default_models_path();
     let s = take_owned_string(ptr, "failed to get default models path")?;
     Ok(PathBuf::from(s))
 }

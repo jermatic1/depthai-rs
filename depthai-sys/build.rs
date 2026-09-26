@@ -97,7 +97,7 @@ impl WindowsOpenCvRuntime {
 
 macro_rules! println_build {
     ($($tokens:tt)*) => {
-        println!("cargo:warning=\r\x1b[32;1m   {}", format!($($tokens)*))
+        eprintln!("   {}", format!($($tokens)*));
     }
 }
 
@@ -1380,6 +1380,9 @@ fn build_cpp_wrapper(
         // same declarations while compiling our C++ wrapper.
         .define("DEPTHAI_XTENSOR_SUPPORT", None)
         .file(PROJECT_ROOT.join("wrapper").join("wrapper.cpp"));
+    if selected_depthai_core_version().api_level() >= 30_700 {
+        cc_build.define("DEPTHAI_SYS_HAS_TENSOR_U16F", Some("1"));
+    }
 
     // The combined wrapper exceeds MSVC's default COFF section limit.
     if target_env_is("msvc") {
