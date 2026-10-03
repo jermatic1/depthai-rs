@@ -419,6 +419,16 @@ impl Pipeline {
         create_threaded_host_node(self, init)
     }
 
+    /// Create a Camera node without building it, so `CameraNode::build` can pin
+    /// the sensor resolution and fps.
+    pub fn create_camera_unbuilt(&self) -> Result<CameraNode> {
+        let node = self.create_node("dai::node::Camera")?;
+        Ok(CameraNode::from_handle(
+            self.inner_arc(),
+            node.handle() as depthai_sys::DaiCameraNode,
+        ))
+    }
+
     pub fn create_camera(&self, socket: CameraBoardSocket) -> Result<CameraNode> {
         clear_error_flag();
         let handle = unsafe {
