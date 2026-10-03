@@ -2222,6 +2222,23 @@ void dai_device_set_ir_laser_dot_projector_intensity(DaiDevice device, float int
     }
 }
 
+void dai_device_set_ir_flood_light_intensity(DaiDevice device, float intensity) {
+    if(!device) {
+        last_error = "dai_device_set_ir_flood_light_intensity: null device";
+        return;
+    }
+    try {
+        auto dev = static_cast<std::shared_ptr<dai::Device>*>(device);
+        if(!dev->get() || !(*dev)) {
+            last_error = "dai_device_set_ir_flood_light_intensity: invalid device";
+            return;
+        }
+        (*dev)->setIrFloodLightIntensity(intensity);
+    } catch(const std::exception& e) {
+        last_error = std::string("dai_device_set_ir_flood_light_intensity failed: ") + e.what();
+    }
+}
+
 static inline dai::node::StereoDepth* _dai_as_stereo(DaiNode stereo) {
     return static_cast<dai::node::StereoDepth*>(stereo);
 }

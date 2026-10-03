@@ -165,7 +165,7 @@ This table reflects what the Rust crates in this repo currently wrap and demonst
 | `ImageAlign`                |    🟢     | `examples/rgbd_rerun.rs`, `src/image_align.rs`            |
 | `ImageManip`                |    🟢     | `examples/image_manip.rs`, `src/image_manip.rs`           |
 | `Misc/AutoReconnect`        |    🔴     |                                                           |
-| `Misc/Projectors`           |    🟡     | `Device::set_ir_laser_dot_projector_intensity`            |
+| `Misc/Projectors`           |    🟡     | `Device::set_ir_laser_dot_projector_intensity`, `Device::set_ir_flood_light_intensity` |
 | `ModelZoo`                  |    🟢     |                                                           |
 | `NeuralDepth`               |    🔴     |                                                           |
 | `NeuralNetwork`             |    🔴     |                                                           |

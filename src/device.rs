@@ -311,6 +311,17 @@ impl Device {
         }
     }
 
+    /// Set IR flood illuminator intensity (0.0..1.0 on supported devices).
+    pub fn set_ir_flood_light_intensity(&self, intensity: f32) -> Result<()> {
+        clear_error_flag();
+        unsafe { depthai::dai_device_set_ir_flood_light_intensity(self.handle, intensity) };
+        if let Some(err) = take_error_if_any("failed to set IR flood light intensity") {
+            Err(err)
+        } else {
+            Ok(())
+        }
+    }
+
     pub(crate) fn handle(&self) -> DaiDevice {
         self.handle
     }

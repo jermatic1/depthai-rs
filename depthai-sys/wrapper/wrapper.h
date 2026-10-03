@@ -408,6 +408,7 @@ API int dai_device_get_platform(DaiDevice device);
 API char *dai_device_get_connected_camera_features_json(DaiDevice device);
 API void dai_device_set_ir_laser_dot_projector_intensity(DaiDevice device,
                                                          float intensity);
+API void dai_device_set_ir_flood_light_intensity(DaiDevice device, float intensity);
 
 // StereoDepth configuration helpers
 API void dai_stereo_set_subpixel(DaiNode stereo, bool enable);
