@@ -200,6 +200,7 @@ This table reflects what the Rust crates in this repo currently wrap and demonst
 - `DEPTHAI_OPENCV_SUPPORT=1`: enable DepthAI-Core OpenCV support (if available).
 - `DEPTHAI_DYNAMIC_CALIBRATION_SUPPORT=1`: toggle DepthAI-Core dynamic calibration support.
 - `DEPTHAI_ENABLE_EVENTS_MANAGER=1`: toggle DepthAI-Core events manager.
+- `DEPTHAI_ENABLE_PROTOBUF=1`: build DepthAI-Core with protobuf (proto serialization, RemoteConnection, events manager). Off by default so the library can link beside others that bundle protobuf, such as ONNX Runtime.
 
 ## Using depthai as a dependency
 

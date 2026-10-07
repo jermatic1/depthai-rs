@@ -385,15 +385,17 @@ fn depthai_core_build_variant() -> String {
     } else {
         "off"
     };
-    let events_manager = if env_bool("DEPTHAI_ENABLE_EVENTS_MANAGER").unwrap_or(true) {
+    let protobuf = protobuf_enabled();
+    let events_manager = if env_bool("DEPTHAI_ENABLE_EVENTS_MANAGER").unwrap_or(protobuf) {
         "on"
     } else {
         "off"
     };
+    let protobuf = if protobuf { "on" } else { "off" };
 
     format!(
-        "release-{}-dynamic-calibration-{}-events-{}",
-        link_mode, dynamic_calibration, events_manager
+        "release-{}-dynamic-calibration-{}-events-{}-protobuf-{}",
+        link_mode, dynamic_calibration, events_manager, protobuf
     )
 }
 
@@ -428,6 +430,7 @@ fn main() {
     println!("cargo:rerun-if-env-changed=DEPTHAI_OPENCV_SUPPORT");
     println!("cargo:rerun-if-env-changed=DEPTHAI_DYNAMIC_CALIBRATION_SUPPORT");
     println!("cargo:rerun-if-env-changed=DEPTHAI_ENABLE_EVENTS_MANAGER");
+    println!("cargo:rerun-if-env-changed=DEPTHAI_ENABLE_PROTOBUF");
     println!("cargo:rerun-if-env-changed=DEPTHAI_RPATH_DISABLE");
     println!("cargo:rerun-if-env-changed=CMAKE_GENERATOR");
     println!("cargo:rerun-if-env-changed=CMAKE_TOOLCHAIN_FILE");
@@ -2273,9 +2276,16 @@ fn cmake_build_depthai_core(path: PathBuf) -> Option<PathBuf> {
         (false, _) => false,
     };
 
+    let protobuf_support = protobuf_enabled();
     let events_manager_support = match (opencv_support, events_manager_override) {
+        (true, Some(true)) if !protobuf_support => {
+            println_build!(
+                "Ignoring DEPTHAI_ENABLE_EVENTS_MANAGER=ON because DEPTHAI_ENABLE_PROTOBUF is disabled."
+            );
+            false
+        }
         (true, Some(flag)) => flag,
-        (true, None) => true,
+        (true, None) => protobuf_support,
         (false, Some(true)) => {
             println_build!(
                 "Ignoring DEPTHAI_ENABLE_EVENTS_MANAGER=ON because DEPTHAI_OPENCV_SUPPORT is disabled."
@@ -2286,10 +2296,11 @@ fn cmake_build_depthai_core(path: PathBuf) -> Option<PathBuf> {
     };
 
     println_build!(
-        "OpenCV support via CMake: {}, Dynamic calibration support: {}, Events manager support: {}",
+        "OpenCV support via CMake: {}, Dynamic calibration support: {}, Events manager support: {}, Protobuf support: {}",
         bool_to_cmake(opencv_support),
         bool_to_cmake(dynamic_calibration_support),
-        bool_to_cmake(events_manager_support)
+        bool_to_cmake(events_manager_support),
+        bool_to_cmake(protobuf_support)
     );
 
     // Build an augmented PATH that includes common user-local bin directories so
@@ -2365,6 +2376,10 @@ CC_aarch64_unknown_linux_gnu and CXX_aarch64_unknown_linux_gnu).",
         .arg(format!(
             "-DDEPTHAI_ENABLE_EVENTS_MANAGER:BOOL={}",
             bool_to_cmake(events_manager_support)
+        ))
+        .arg(format!(
+            "-DDEPTHAI_ENABLE_PROTOBUF:BOOL={}",
+            bool_to_cmake(protobuf_support)
         ))
         .arg("-G")
         .arg(&generator)
@@ -2450,6 +2465,13 @@ CC_aarch64_unknown_linux_gnu and CXX_aarch64_unknown_linux_gnu).",
 
     // Find the produced artifact (static or shared).
     probe_depthai_core_lib(path, prefer_static)
+}
+
+/// Protobuf support in depthai-core: proto serialization, RemoteConnection and
+/// the Events Manager. Off by default because the static protobuf it pulls in
+/// clashes with other libraries that bundle their own copy, such as ONNX Runtime.
+fn protobuf_enabled() -> bool {
+    env_bool("DEPTHAI_ENABLE_PROTOBUF").unwrap_or(false)
 }
 
 fn env_bool(key: &str) -> Option<bool> {
@@ -2792,7 +2814,7 @@ fn emit_link_directives(path: &Path) {
             }
 
             let protos_dir = BUILD_FOLDER_PATH.join("protos");
-            if protos_dir.join("libmessages.a").exists() {
+            if protobuf_enabled() && protos_dir.join("libmessages.a").exists() {
                 println!("cargo:rustc-link-search=native={}", protos_dir.display());
             }
 
@@ -2829,7 +2851,7 @@ fn emit_link_directives(path: &Path) {
             }
 
             // Protobuf-generated messages for depthai-core live in a separate archive.
-            if protos_dir.join("libmessages.a").exists() {
+            if protobuf_enabled() && protos_dir.join("libmessages.a").exists() {
                 if target_os_is("linux") {
                     println!("cargo:rustc-link-lib=static:+whole-archive=messages");
                 } else {
@@ -2839,7 +2861,7 @@ fn emit_link_directives(path: &Path) {
 
             // Foxglove websocket server.
             let foxglove_dir = BUILD_FOLDER_PATH.join("foxglove-websocket");
-            if foxglove_dir.join("libfoxglove_websocket.a").exists() {
+            if protobuf_enabled() && foxglove_dir.join("libfoxglove_websocket.a").exists() {
                 println!("cargo:rustc-link-search=native={}", foxglove_dir.display());
                 if target_os_is("linux") {
                     println!("cargo:rustc-link-lib=static:+whole-archive=foxglove_websocket");
@@ -2962,13 +2984,13 @@ fn emit_link_directives(path: &Path) {
                 static_if_exists("libmp4v2.a", "mp4v2");
 
                 // Protobuf runtime.
-                if libdir.join("libprotobuf.a").exists() {
+                if protobuf_enabled() && libdir.join("libprotobuf.a").exists() {
                     if target_os_is("linux") {
                         println!("cargo:rustc-link-lib=static:+whole-archive=protobuf");
                     } else {
                         println!("cargo:rustc-link-lib=static=protobuf");
                     }
-                } else if libdir.join("libprotobuf-lite.a").exists() {
+                } else if protobuf_enabled() && libdir.join("libprotobuf-lite.a").exists() {
                     if target_os_is("linux") {
                         println!("cargo:rustc-link-lib=static:+whole-archive=protobuf-lite");
                     } else {
@@ -2979,8 +3001,9 @@ fn emit_link_directives(path: &Path) {
                 // Protobuf depends on utf8_range/utf8_validity for UTF-8 validation.
                 // These libraries can overlap (utf8_validity may embed utf8_range objects),
                 // and linking both under --whole-archive can produce duplicate symbols.
-                let has_utf8_range = libdir.join("libutf8_range.a").exists();
-                let has_utf8_validity = libdir.join("libutf8_validity.a").exists();
+                let has_utf8_range = protobuf_enabled() && libdir.join("libutf8_range.a").exists();
+                let has_utf8_validity =
+                    protobuf_enabled() && libdir.join("libutf8_validity.a").exists();
 
                 if has_utf8_validity {
                     static_if_exists("libutf8_validity.a", "utf8_validity");
@@ -3000,13 +3023,15 @@ fn emit_link_directives(path: &Path) {
                 static_if_exists("libcrypto.a", "crypto");
 
                 // Newer protobuf builds rely on abseil.
-                if libdir.read_dir().ok().is_some_and(|mut it| {
-                    it.any(|e| {
-                        e.ok().is_some_and(|e| {
-                            e.file_name().to_string_lossy().starts_with("libabsl_")
+                if protobuf_enabled()
+                    && libdir.read_dir().ok().is_some_and(|mut it| {
+                        it.any(|e| {
+                            e.ok().is_some_and(|e| {
+                                e.file_name().to_string_lossy().starts_with("libabsl_")
+                            })
                         })
                     })
-                }) {
+                {
                     link_all_static_libs_with_prefix(libdir, "libabsl_");
                 }
 
