@@ -74,7 +74,7 @@ pub struct PipelineConnectionInfo {
     pub input_name: String,
 }
 
-fn take_owned_json_string(ptr: *mut std::ffi::c_char, context: &str) -> Result<String> {
+pub(crate) fn take_owned_json_string(ptr: *mut std::ffi::c_char, context: &str) -> Result<String> {
     if ptr.is_null() {
         return Err(last_error(context));
     }
@@ -83,7 +83,7 @@ fn take_owned_json_string(ptr: *mut std::ffi::c_char, context: &str) -> Result<S
     Ok(s)
 }
 
-fn parse_json_value(s: &str) -> Result<serde_json::Value> {
+pub(crate) fn parse_json_value(s: &str) -> Result<serde_json::Value> {
     serde_json::from_str(s)
         .map_err(|e| DepthaiError::new(format!("invalid JSON from depthai-core: {e}")))
 }

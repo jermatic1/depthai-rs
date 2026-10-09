@@ -409,6 +409,8 @@ API char *dai_device_get_connected_camera_features_json(DaiDevice device);
 API void dai_device_set_ir_laser_dot_projector_intensity(DaiDevice device,
                                                          float intensity);
 API void dai_device_set_ir_flood_light_intensity(DaiDevice device, float intensity);
+// EEPROM calibration of the connected device as JSON (CalibrationHandler::eepromToJson).
+API char *dai_device_read_calibration_json(DaiDevice device);
 
 // StereoDepth configuration helpers
 API void dai_stereo_set_subpixel(DaiNode stereo, bool enable);

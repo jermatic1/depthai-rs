@@ -312,6 +312,17 @@ impl Device {
     }
 
     /// Set IR flood illuminator intensity (0.0..1.0 on supported devices).
+    /// The device's EEPROM calibration as the JSON `CalibrationHandler::eepromToJson`
+    /// produces: per-camera intrinsics, distortion, extrinsics, and stereo
+    /// rectification data. `None` when the device has no calibration.
+    pub fn read_calibration_json(&self) -> Result<Option<serde_json::Value>> {
+        clear_error_flag();
+        let ptr = unsafe { depthai::dai_device_read_calibration_json(self.handle) };
+        let s = crate::pipeline::take_owned_json_string(ptr, "failed to read device calibration")?;
+        let v = crate::pipeline::parse_json_value(&s)?;
+        Ok((!v.is_null()).then_some(v))
+    }
+
     pub fn set_ir_flood_light_intensity(&self, intensity: f32) -> Result<()> {
         clear_error_flag();
         unsafe { depthai::dai_device_set_ir_flood_light_intensity(self.handle, intensity) };

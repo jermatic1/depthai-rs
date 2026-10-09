@@ -2239,6 +2239,28 @@ void dai_device_set_ir_flood_light_intensity(DaiDevice device, float intensity) 
     }
 }
 
+char* dai_device_read_calibration_json(DaiDevice device) {
+    if(!device) {
+        last_error = "dai_device_read_calibration_json: null device";
+        return nullptr;
+    }
+    try {
+        dai_clear_last_error();
+        auto dev = static_cast<std::shared_ptr<dai::Device>*>(device);
+        if(!dev->get() || !(*dev)) {
+            last_error = "dai_device_read_calibration_json: invalid device";
+            return nullptr;
+        }
+        auto calib = (*dev)->readCalibration();
+        nlohmann::json j = calib.eepromToJson();
+        auto dumped = j.dump();
+        return dai_string_to_cstring(dumped.c_str());
+    } catch(const std::exception& e) {
+        last_error = std::string("dai_device_read_calibration_json failed: ") + e.what();
+        return nullptr;
+    }
+}
+
 static inline dai::node::StereoDepth* _dai_as_stereo(DaiNode stereo) {
     return static_cast<dai::node::StereoDepth*>(stereo);
 }
